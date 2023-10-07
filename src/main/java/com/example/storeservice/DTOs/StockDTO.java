@@ -1,6 +1,5 @@
 package com.example.storeservice.DTOs;
 
-import com.example.storeservice.entities.Product;
 import com.example.storeservice.entities.Store;
 import lombok.Data;
 
@@ -8,7 +7,7 @@ import lombok.Data;
 public class StockDTO {
 
     private Long stockId;
-    private Product product;
+    private Long productId;
     private Store store;
     private int quantity;
     private String dateAdded;

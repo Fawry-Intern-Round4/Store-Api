@@ -1,9 +1,6 @@
 package com.example.storeservice.services;
 
-import com.example.storeservice.DTOs.ProductConsumptionDTO;
-import com.example.storeservice.DTOs.ProductDTO;
-import com.example.storeservice.DTOs.StockDTO;
-import com.example.storeservice.DTOs.StoreDTO;
+import com.example.storeservice.DTOs.*;
 
 import java.util.List;
 
@@ -15,15 +12,15 @@ public interface StoreService {
 
     StoreDTO getStoreById(Long storeId);
 
-    List<ProductDTO> searchProductsByName(String productName);
+//    List<ProductDTO> searchProductsByName(String productName);
 
-    StockDTO addStock(Long storeId, Long productId, int quantity);
+    List<StockDTO> addStock(List<OrderItemsRequest> orderItemsRequest);
 
-    List<ProductConsumptionDTO> consumeProducts(Long storeId, Long productId, int quantity);
+    List<OrderItemsResponse> consumeProducts(List<OrderItemsRequest> orderItemsRequest);
 
     List<ProductConsumptionDTO> getAllProductConsumptions();
 
     List<ProductConsumptionDTO> getProductConsumptionsByStoreId(Long storeId);
 
-    List<ProductDTO> getAllProductsByStoreId(Long storeId);
+//    List<ProductDTO> getAllProductsByStoreId(Long storeId);
 }

@@ -1,9 +1,6 @@
 package com.example.storeservice.controllers;
 
-import com.example.storeservice.DTOs.ProductConsumptionDTO;
-import com.example.storeservice.DTOs.ProductDTO;
-import com.example.storeservice.DTOs.StockDTO;
-import com.example.storeservice.DTOs.StoreDTO;
+import com.example.storeservice.DTOs.*;
 import com.example.storeservice.services.StoreService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -22,10 +19,10 @@ public class StoreController {
         return storeService.getAllStores();
     }
 
-    @GetMapping("/products")
-    public List<ProductDTO> getAllProductsByStoreId(@RequestParam Long storeId) {
-        return storeService.getAllProductsByStoreId(storeId);
-    }
+//    @GetMapping("/products")
+//    public List<ProductDTO> getAllProductsByStoreId(@RequestParam Long storeId) {
+//        return storeService.getAllProductsByStoreId(storeId);
+//    }
 
     @PostMapping
     public StoreDTO createStore(@RequestBody StoreDTO storeDTO) {
@@ -37,19 +34,19 @@ public class StoreController {
         return storeService.getStoreById(storeId);
     }
 
-    @GetMapping("/search")
-    public List<ProductDTO> searchStoresByName(@RequestParam String productName) {
-        return storeService.searchProductsByName(productName);
-    }
+//    @GetMapping("/search")
+//    public List<ProductDTO> searchStoresByName(@RequestParam String productName) {
+//        return storeService.searchProductsByName(productName);
+//    }
 
     @PutMapping("/addStock")
-    public StockDTO addStock(@RequestParam Long storeId, @RequestParam Long productId, @RequestParam int quantity) {
-        return storeService.addStock(storeId, productId, quantity);
+    public List<StockDTO> addStock(@RequestBody List<OrderItemsRequest> orderItemsRequest) {
+        return storeService.addStock(orderItemsRequest);
     }
 
     @PostMapping("/consumeProducts")
-    public List<ProductConsumptionDTO> consumeProducts(@RequestParam Long storeId, @RequestParam Long productId, @RequestParam int quantity) {
-        return storeService.consumeProducts(storeId, productId, quantity);
+    public List<OrderItemsResponse> consumeProducts(@RequestBody List<OrderItemsRequest> orderItemsRequests) {
+        return storeService.consumeProducts(orderItemsRequests);
     }
 
     @GetMapping("/getAllProductConsumptions")

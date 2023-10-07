@@ -1,29 +1,23 @@
 package com.example.storeservice.services;
 
-import com.example.storeservice.DTOs.ProductConsumptionDTO;
-import com.example.storeservice.DTOs.ProductDTO;
-import com.example.storeservice.DTOs.StockDTO;
-import com.example.storeservice.DTOs.StoreDTO;
-import com.example.storeservice.entities.Product;
+import com.example.storeservice.DTOs.*;
 import com.example.storeservice.entities.ProductConsumption;
 import com.example.storeservice.entities.Stock;
 import com.example.storeservice.entities.Store;
 import com.example.storeservice.mappers.ProductConsumptionMapper;
-import com.example.storeservice.mappers.ProductMapper;
 import com.example.storeservice.mappers.StockMapper;
 import com.example.storeservice.mappers.StoreMapper;
 import com.example.storeservice.repositories.ProductConsumptionRepository;
-import com.example.storeservice.repositories.ProductRepository;
 import com.example.storeservice.repositories.StockRepository;
 import com.example.storeservice.repositories.StoreRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.LocalDate;
-import java.util.Date;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class StoreServiceImpl implements StoreService{
@@ -33,12 +27,6 @@ public class StoreServiceImpl implements StoreService{
 
     @Autowired
     private StoreMapper storeMapper;
-
-    @Autowired
-    private ProductRepository productRepository;
-
-    @Autowired
-    private ProductMapper productMapper;
 
     @Autowired
     private StockRepository stockRepository;
@@ -51,6 +39,12 @@ public class StoreServiceImpl implements StoreService{
 
     @Autowired
     private ProductConsumptionMapper productConsumptionMapper;
+
+    private final WebClient webClient;
+
+    public StoreServiceImpl(WebClient.Builder webClientBuilder) {
+        this.webClient = webClientBuilder.baseUrl("http://localhost:8081/products").build();
+    }
 
     @Override
     public StoreDTO createStore(StoreDTO storeDTO) {
@@ -76,72 +70,101 @@ public class StoreServiceImpl implements StoreService{
                 .orElse(null);
     }
 
+//    @Override
+//    public List<ProductDTO> searchProductsByName(String productName) {
+//        List<Product> matchingProducts = productRepository.findAllByproductNameStartsWith(productName);
+//        return matchingProducts
+//                .stream()
+//                .map(productMapper::ToProductDTO)
+//                .toList();
+//    }
+
     @Override
-    public List<ProductDTO> searchProductsByName(String productName) {
-        List<Product> matchingProducts = productRepository.findAllByproductNameStartsWith(productName);
-        return matchingProducts
+    public List<StockDTO> addStock(List<OrderItemsRequest> orderItemsRequest) {
+
+        List<Long> productIds = orderItemsRequest
                 .stream()
-                .map(productMapper::ToProductDTO)
+                .map(OrderItemsRequest::getProductId)
                 .toList();
+
+        List<OrderItemsResponse> orderItemsResponse = webClient
+                .post()
+                .uri("/getProductsByIds")
+                .bodyValue(productIds)
+                .retrieve()
+                .bodyToFlux(OrderItemsResponse.class)
+                .collectList()
+                .block();
+
+        LocalDate date = LocalDate.now();
+        List<StockDTO> stockDTOList = new ArrayList<>();
+
+        for(OrderItemsResponse orderItemsResponseCheck : orderItemsResponse)
+        {
+            Stock stock = stockRepository.findByProductIdAndStoreId(orderItemsResponseCheck.getStoreId(),orderItemsResponseCheck.getProductId());
+            if ( stock != null)
+            {
+                stock.setQuantity(stock.getQuantity() + orderItemsResponseCheck.getQuantity());
+                stock.setDateAdded(date.toString());
+                stockRepository.save(stock);
+            }
+            else
+            {
+                stock = new Stock();
+                stock.setProductId(orderItemsResponseCheck.getProductId());
+                stock.setStore(storeRepository.getReferenceById(orderItemsResponseCheck.getStoreId()));
+                stock.setQuantity(orderItemsResponseCheck.getQuantity());
+                stock.setDateAdded(date.toString());
+                stockRepository.save(stock);
+            }
+            stockDTOList.add(stockMapper.ToStockDTO(stock));
+        }
+
+        return stockDTOList;
     }
 
     @Override
-    @Async
-    public StockDTO addStock(Long storeId, Long productId, int quantity) {
+    public List<OrderItemsResponse> consumeProducts(List<OrderItemsRequest> orderItemsRequest) {
 
-        Store store = storeRepository.findById(storeId).orElseThrow();
-        Product product = productRepository.findById(productId).orElseThrow();
-
-        if( product.getStore() != store)
-        {
-            return null;
-        }
-
-        Stock stock = stockRepository.findByStoreAndProduct(store, productRepository.findById(productId).orElse(null)).orElseThrow();
-
-        stock.setQuantity(stock.getQuantity() + quantity);
-
-        LocalDate date = LocalDate.now();
-        stock.setDateAdded(date.toString());
-
-        stock = stockRepository.save(stock);
-
-        return stockMapper.ToStockDTO(stock);
-    }
-
-    @Override
-    public List<ProductConsumptionDTO> consumeProducts(Long storeId, Long productId, int quantity) {
-
-        Store store = storeRepository.findById(storeId).orElse(null);
-        Product product = productRepository.findById(productId).orElse(null);
-
-
-        if( product.getStore() != store)
-        {
-            return null;
-        }
-
-        Stock stock = stockRepository.findByStoreAndProduct(store, productRepository.findById(productId).orElse(null)).orElseThrow();
-
-        stock.setQuantity(stock.getQuantity() - quantity);
-
-        LocalDate date = LocalDate.now();
-
-        stock = stockRepository.save(stock);
-
-        ProductConsumption productConsumption = new ProductConsumption();
-        productConsumption.setProduct(product);
-        productConsumption.setStore(store);
-        productConsumption.setQuantityConsumed(quantity);
-        productConsumption.setDateConsumed(date.toString());
-
-        productConsumptionRepository.save(productConsumption);
-
-        return productConsumptionRepository
-                .findAll()
+        List<Long> productIds = orderItemsRequest
                 .stream()
-                .map(productConsumptionMapper::ToProductConsumptionDTO)
+                .map(OrderItemsRequest::getProductId)
                 .toList();
+
+
+        List<OrderItemsResponse> orderItemsResponse = webClient
+                                .post()
+                                .uri("/getProductsByIds")
+                                .bodyValue(productIds)
+                                .retrieve()
+                                .bodyToFlux(OrderItemsResponse.class)
+                                .collectList()
+                                .block();
+
+        LocalDate date = LocalDate.now();
+
+        for(OrderItemsResponse orderItemsResponseCheck : orderItemsResponse)
+        {
+            Stock stock = stockRepository.findByProductIdAndStoreId(orderItemsResponseCheck.getStoreId(),orderItemsResponseCheck.getProductId());
+            if ( stock.getQuantity() >= orderItemsResponseCheck.getQuantity())
+            {
+                orderItemsResponseCheck.setAvailable(true);
+                stock.setQuantity(stock.getQuantity() - orderItemsResponseCheck.getQuantity());
+                stockRepository.save(stock);
+                ProductConsumption productConsumption = new ProductConsumption();
+                productConsumption.setProductId(orderItemsResponseCheck.getProductId());
+                productConsumption.setStore(storeRepository.getReferenceById(orderItemsResponseCheck.getStoreId()));
+                productConsumption.setQuantityConsumed(orderItemsResponseCheck.getQuantity());
+                productConsumption.setDateConsumed(date.toString());
+                productConsumptionRepository.save(productConsumption);
+            }
+            else
+            {
+                orderItemsResponseCheck.setAvailable(false);
+            }
+        }
+
+        return orderItemsResponse;
     }
 
     @Override
@@ -167,15 +190,15 @@ public class StoreServiceImpl implements StoreService{
                 .toList();
     }
 
-    @Override
-    public List<ProductDTO> getAllProductsByStoreId(Long storeId) {
-
-        Store store = storeRepository.findById(storeId).orElse(null);
-
-        return productRepository
-                .findAllByStoreId(storeId)
-                .stream()
-                .map(productMapper::ToProductDTO)
-                .toList();
-    }
+//    @Override
+//    public List<ProductDTO> getAllProductsByStoreId(Long storeId) {
+//
+//        Store store = storeRepository.findById(storeId).orElse(null);
+//
+//        return productRepository
+//                .findAllByStoreId(storeId)
+//                .stream()
+//                .map(productMapper::ToProductDTO)
+//                .toList();
+//    }
 }
