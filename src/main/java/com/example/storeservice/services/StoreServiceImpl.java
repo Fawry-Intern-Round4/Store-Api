@@ -1,6 +1,7 @@
 package com.example.storeservice.services;
 
 import com.example.storeservice.DTOs.*;
+import com.example.storeservice.DTOs.requests.OrderItemsRequest;
 import com.example.storeservice.entities.ProductConsumption;
 import com.example.storeservice.entities.Stock;
 import com.example.storeservice.entities.Store;
@@ -11,7 +12,6 @@ import com.example.storeservice.repositories.ProductConsumptionRepository;
 import com.example.storeservice.repositories.StockRepository;
 import com.example.storeservice.repositories.StoreRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -88,9 +88,8 @@ public class StoreServiceImpl implements StoreService{
                 .toList();
 
         List<OrderItemsResponse> orderItemsResponse = webClient
-                .post()
-                .uri("/getProductsByIds")
-                .bodyValue(productIds)
+                .get()
+                .uri("")
                 .retrieve()
                 .bodyToFlux(OrderItemsResponse.class)
                 .collectList()
@@ -190,15 +189,25 @@ public class StoreServiceImpl implements StoreService{
                 .toList();
     }
 
-//    @Override
-//    public List<ProductDTO> getAllProductsByStoreId(Long storeId) {
-//
-//        Store store = storeRepository.findById(storeId).orElse(null);
-//
-//        return productRepository
-//                .findAllByStoreId(storeId)
-//                .stream()
-//                .map(productMapper::ToProductDTO)
-//                .toList();
-//    }
+    @Override
+    public List<productResponse> getAllProductsByStoreId(Long storeId) {
+
+        List<Stock> stockList = stockRepository.findByStoreId(storeId);
+
+        List<Long> productIds = stockList
+                .stream()
+                .map(Stock::getProductId)
+                .toList();
+
+        List<productResponse> productResponseList = webClient
+                .post()
+                .uri("/getProductsByIds")
+                .bodyValue(productIds)
+                .retrieve()
+                .bodyToFlux(productResponse.class)
+                .collectList()
+                .block();
+
+        return productResponseList;
+    }
 }

@@ -1,4 +1,4 @@
-package com.example.storeservice.DTOs;
+package com.example.storeservice.DTOs.requests;
 
 import lombok.Data;
 
