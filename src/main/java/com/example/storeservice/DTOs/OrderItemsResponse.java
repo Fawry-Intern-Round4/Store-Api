@@ -7,9 +7,9 @@ import lombok.Getter;
 @Getter
 public class OrderItemsResponse {
 
-    private Long productId;
+    private Long id;
     private Long storeId;
-    private String productName;
+    private String name;
     private double price;
     private boolean available;
     private int quantity;
