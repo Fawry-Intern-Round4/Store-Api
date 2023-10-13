@@ -65,29 +65,10 @@ public class StoreServiceImpl implements StoreService {
                 .orElse(null);
     }
 
-//    @Override
-//    public List<ProductDTO> searchProductsByName(String productName) {
-//        List<Product> matchingProducts = productRepository.findAllByproductNameStartsWith(productName);
-//        return matchingProducts
-//                .stream()
-//                .map(productMapper::ToProductDTO)
-//                .toList();
-//    }
-
-    //TODO: make it only take one product id and quantity and store id
     @Override
-    public List<StockDTO> addStock(List<OrderItemsRequest> orderItemsRequest) {
-        //TODO: check if product id exists in product api
-        //TODO: check if store id exists in store api
-        //TODO: if it already exists in stock api then add the quantity to the existing quantity
-        //TODO: if it doesn't exist in stock api then create a new stock with the quantity
+    public String addStock(OrderItemsRequest orderItemsRequest) {
 
-
-
-        List<Long> productIds = orderItemsRequest
-                .stream()
-                .map(OrderItemsRequest::getProductId)
-                .toList();
+        List<Long> productIds = List.of(orderItemsRequest.getProductId());
 
         List<OrderItemsResponse> orderItemsResponse = webClient.build()
                 .get()
@@ -99,49 +80,37 @@ public class StoreServiceImpl implements StoreService {
                 .collectList()
                 .block();
 
-        LocalDate date = LocalDate.now();
-        List<StockDTO> stockDTOList = new ArrayList<>();
-        for (OrderItemsResponse orderItemsResponseCheck : orderItemsResponse){
-            for (OrderItemsRequest orderItemsRequestCheck : orderItemsRequest){
-                if (orderItemsResponseCheck.getId().equals(orderItemsRequestCheck.getProductId())){
-                    orderItemsResponseCheck.setStoreId(orderItemsRequestCheck.getStoreId());
-                    orderItemsResponseCheck.setQuantity(orderItemsRequestCheck.getQuantity());
-                }
-            }
-        }
-        for (OrderItemsResponse orderItemsResponseCheck : orderItemsResponse) {
-            Stock stock = stockRepository.findByProductIdAndStoreId(orderItemsResponseCheck.getStoreId() , orderItemsResponseCheck.getId());
-            if (stock != null) {
-                stock.setQuantity(stock.getQuantity() + orderItemsResponseCheck.getQuantity());
-                stock.setDateAdded(date.toString());
-                stockRepository.save(stock);
-            } else {
-                stock = new Stock();
-                stock.setProductId(orderItemsResponseCheck.getId());
-                stock.setStore(storeRepository.getReferenceById(orderItemsResponseCheck.getStoreId()));
-                stock.setQuantity(orderItemsResponseCheck.getQuantity());
-                stock.setDateAdded(date.toString());
-                stockRepository.save(stock);
-            }
-            stockDTOList.add(stockMapper.ToStockDTO(stock));
+        Store store = storeRepository.findById(orderItemsRequest.getStoreId()).orElse(null);
+
+        if (store == null){
+            return "NOT FOUND";
         }
 
-        return stockDTOList;
+        Stock stock = stockRepository.findByProductIdAndStoreId(orderItemsRequest.getStoreId() , orderItemsRequest.getProductId());
+
+        if (stock != null){
+            stock.setQuantity(stock.getQuantity() + orderItemsRequest.getQuantity());
+            stock.setDateAdded(LocalDate.now().toString());
+            stockRepository.save(stock);
+            return "UPDATED";
+        }
+
+        stock = new Stock();
+        stock.setProductId(orderItemsRequest.getProductId());
+        stock.setStore(store);
+        stock.setQuantity(orderItemsRequest.getQuantity());
+        stock.setDateAdded(LocalDate.now().toString());
+        stockRepository.save(stock);
+        return "CREATED";
     }
 
     @Override
     public List<OrderItemsResponse> consumeProducts(List<OrderItemsRequest> orderItemsRequest) {
-        //TODO: check if product ids exist in product api
-        //TODO: check if store ids exist in store api
-        //TODO: check if the quantity is available in stock api
-        //TODO: if it is available then consume the quantity from the stock
-        //TODO: if it is not available then return list of products that are not available
 
         List<Long> productIds = orderItemsRequest
                 .stream()
                 .map(OrderItemsRequest::getProductId)
                 .toList();
-
 
         List<OrderItemsResponse> orderItemsResponse = webClient.build()
                 .get()
@@ -153,27 +122,36 @@ public class StoreServiceImpl implements StoreService {
                 .collectList()
                 .block();
 
+        List<Long> storeIds = orderItemsRequest
+                .stream()
+                .map(OrderItemsRequest::getStoreId)
+                .toList();
 
-        LocalDate date = LocalDate.now();
+        for (Long productId : productIds) {
+            for (int i = 0; i < storeIds.size(); i++) {
+                if ( stockRepository.findByProductIdAndStoreId(storeIds.get(i), productId) != null){
+                    break;
+                }
+                else if (i == storeIds.size() - 1){
+                    // product not found in any store
+                }
+            }
+        }
+
+        List<OrderItemsResponse> productsNotAvailable = new ArrayList<>();
 
         for (OrderItemsResponse orderItemsResponseCheck : orderItemsResponse) {
             Stock stock = stockRepository.findByProductIdAndStoreId(orderItemsResponseCheck.getStoreId(), orderItemsResponseCheck.getId());
             if (stock.getQuantity() >= orderItemsResponseCheck.getQuantity()) {
                 orderItemsResponseCheck.setAvailable(true);
                 stock.setQuantity(stock.getQuantity() - orderItemsResponseCheck.getQuantity());
-                stockRepository.save(stock);
-                ProductConsumption productConsumption = new ProductConsumption();
-                productConsumption.setProductId(orderItemsResponseCheck.getId());
-                productConsumption.setStore(storeRepository.getReferenceById(orderItemsResponseCheck.getStoreId()));
-                productConsumption.setQuantityConsumed(orderItemsResponseCheck.getQuantity());
-                productConsumption.setDateConsumed(date.toString());
-                productConsumptionRepository.save(productConsumption);
             } else {
                 orderItemsResponseCheck.setAvailable(false);
+                productsNotAvailable.add(orderItemsResponseCheck);
             }
         }
 
-        return orderItemsResponse;
+        return productsNotAvailable;
     }
 
     @Override

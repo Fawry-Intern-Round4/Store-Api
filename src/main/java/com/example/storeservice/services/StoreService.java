@@ -15,7 +15,7 @@ public interface StoreService {
 
 //    List<ProductDTO> searchProductsByName(String productName);
 
-    List<StockDTO> addStock(List<OrderItemsRequest> orderItemsRequest);
+    String addStock(OrderItemsRequest orderItemsRequest);
 
     List<OrderItemsResponse> consumeProducts(List<OrderItemsRequest> orderItemsRequest);
 

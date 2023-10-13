@@ -35,13 +35,8 @@ public class StoreController {
         return storeService.getStoreById(storeId);
     }
 
-//    @GetMapping("/search")
-//    public List<ProductDTO> searchStoresByName(@RequestParam String productName) {
-//        return storeService.searchProductsByName(productName);
-//    }
-
     @PutMapping("/addStock")
-    public List<StockDTO> addStock(@RequestBody List<OrderItemsRequest> orderItemsRequest) {
+    public String addStock(@RequestBody OrderItemsRequest orderItemsRequest) {
         return storeService.addStock(orderItemsRequest);
     }
 
