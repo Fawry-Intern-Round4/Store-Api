@@ -13,11 +13,9 @@ public interface StoreService {
 
     StoreDTO getStoreById(Long storeId);
 
-//    List<ProductDTO> searchProductsByName(String productName);
+    StockDTO addStock(OrderItemsRequest orderItemsRequest);
 
-    String addStock(OrderItemsRequest orderItemsRequest);
-
-    List<OrderItemsResponse> consumeProducts(List<OrderItemsRequest> orderItemsRequest);
+    void consumeProducts(List<OrderItemsRequest> orderItemsRequest);
 
     List<ProductConsumptionDTO> getAllProductConsumptions();
 

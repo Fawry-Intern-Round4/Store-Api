@@ -2,6 +2,9 @@ package com.example.storeservice.entities;
 
 import lombok.Data;
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.Instant;
 
 @Entity
 @Table(name = "stocks")
@@ -20,5 +23,6 @@ public class Stock {
 
     private int quantity;
 
-    private String dateAdded;
+    @CreationTimestamp
+    private Instant dateAdded;
 }

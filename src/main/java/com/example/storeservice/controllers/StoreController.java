@@ -4,6 +4,7 @@ import com.example.storeservice.DTOs.*;
 import com.example.storeservice.DTOs.requests.OrderItemsRequest;
 import com.example.storeservice.services.StoreService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,10 +21,10 @@ public class StoreController {
         return storeService.getAllStores();
     }
 
-//    @GetMapping("/products")
-//    public List<ProductDTO> getAllProductsByStoreId(@RequestParam Long storeId) {
-//        return storeService.getAllProductsByStoreId(storeId);
-//    }
+    @GetMapping("/products")
+    public List<productResponse> getAllProductsByStoreId(@RequestParam Long storeId) {
+        return storeService.getAllProductsByStoreId(storeId);
+    }
 
     @PostMapping
     public StoreDTO createStore(@RequestBody StoreDTO storeDTO) {
@@ -36,13 +37,14 @@ public class StoreController {
     }
 
     @PutMapping("/addStock")
-    public String addStock(@RequestBody OrderItemsRequest orderItemsRequest) {
+    public StockDTO addStock(@RequestBody OrderItemsRequest orderItemsRequest) {
         return storeService.addStock(orderItemsRequest);
     }
 
     @PostMapping("/consumeProducts")
-    public List<OrderItemsResponse> consumeProducts(@RequestBody List<OrderItemsRequest> orderItemsRequests) {
-        return storeService.consumeProducts(orderItemsRequests);
+    @ResponseStatus(code = HttpStatus.OK)
+    public void consumeProducts(@RequestBody List<OrderItemsRequest> orderItemsRequests) {
+        storeService.consumeProducts(orderItemsRequests);
     }
 
     @GetMapping("/getAllProductConsumptions")
