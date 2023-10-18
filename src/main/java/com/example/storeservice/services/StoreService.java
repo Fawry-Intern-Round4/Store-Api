@@ -1,9 +1,9 @@
 package com.example.storeservice.services;
 
-import com.example.storeservice.DTOs.*;
-import com.example.storeservice.DTOs.requests.OrderItemsRequest;
+import com.example.storeservice.dtos.*;
 
 import java.util.List;
+import java.util.Set;
 
 public interface StoreService {
 
@@ -13,15 +13,10 @@ public interface StoreService {
 
     StoreDTO getStoreById(Long storeId);
 
-//    List<ProductDTO> searchProductsByName(String productName);
+    List<ProductResponse> getAllProductsByStoreId(Long storeId);
 
-    List<StockDTO> addStock(List<OrderItemsRequest> orderItemsRequest);
+    void checkIfStoreExists(Long storeId);
 
-    List<OrderItemsResponse> consumeProducts(List<OrderItemsRequest> orderItemsRequest);
+    void checkIfStoresExists(Set<Long> ids);
 
-    List<ProductConsumptionDTO> getAllProductConsumptions();
-
-    List<ProductConsumptionDTO> getProductConsumptionsByStoreId(Long storeId);
-
-    List<productResponse> getAllProductsByStoreId(Long storeId);
 }

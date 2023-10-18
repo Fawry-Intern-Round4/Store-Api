@@ -1,13 +1,13 @@
 package com.example.storeservice.mappers;
 
-import com.example.storeservice.DTOs.StoreDTO;
+import com.example.storeservice.dtos.StoreDTO;
 import com.example.storeservice.entities.Store;
 import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")
 public interface StoreMapper {
 
-    Store ToStore(StoreDTO storeDTO);
+    Store toStore(StoreDTO storeDTO);
 
-    StoreDTO ToStoreDTO(Store store);
+    StoreDTO toStoreDTO(Store store);
 }

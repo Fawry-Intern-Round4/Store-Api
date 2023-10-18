@@ -1,62 +1,40 @@
 package com.example.storeservice.controllers;
 
-import com.example.storeservice.DTOs.*;
-import com.example.storeservice.DTOs.requests.OrderItemsRequest;
+import com.example.storeservice.dtos.StoreDTO;
+import com.example.storeservice.dtos.ProductResponse;
 import com.example.storeservice.services.StoreService;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/store")
+@RequiredArgsConstructor
 public class StoreController {
+    private final StoreService storeService;
 
-    @Autowired
-    private StoreService storeService;
+    @PostMapping
+    @ResponseStatus(code = HttpStatus.CREATED)
+    public StoreDTO createStore(@Valid @RequestBody StoreDTO storeDTO) {
+        return storeService.createStore(storeDTO);
+    }
 
     @GetMapping
     public List<StoreDTO> getAllStores() {
         return storeService.getAllStores();
     }
 
-//    @GetMapping("/products")
-//    public List<ProductDTO> getAllProductsByStoreId(@RequestParam Long storeId) {
-//        return storeService.getAllProductsByStoreId(storeId);
-//    }
-
-    @PostMapping
-    public StoreDTO createStore(@RequestBody StoreDTO storeDTO) {
-        return storeService.createStore(storeDTO);
+    @GetMapping("{id}")
+    public StoreDTO getStoreById(@PathVariable("id") Long id) {
+        return storeService.getStoreById(id);
     }
 
-    @GetMapping("/get")
-    public StoreDTO getStoreById(@RequestParam Long storeId) {
-        return storeService.getStoreById(storeId);
+    @GetMapping("{id}/product")
+    public List<ProductResponse> getAllProductsByStoreId(@PathVariable("id") Long id) {
+        return storeService.getAllProductsByStoreId(id);
     }
 
-//    @GetMapping("/search")
-//    public List<ProductDTO> searchStoresByName(@RequestParam String productName) {
-//        return storeService.searchProductsByName(productName);
-//    }
-
-    @PutMapping("/addStock")
-    public List<StockDTO> addStock(@RequestBody List<OrderItemsRequest> orderItemsRequest) {
-        return storeService.addStock(orderItemsRequest);
-    }
-
-    @PostMapping("/consumeProducts")
-    public List<OrderItemsResponse> consumeProducts(@RequestBody List<OrderItemsRequest> orderItemsRequests) {
-        return storeService.consumeProducts(orderItemsRequests);
-    }
-
-    @GetMapping("/getAllProductConsumptions")
-    public List<ProductConsumptionDTO> getAllProductConsumptions() {
-        return storeService.getAllProductConsumptions();
-    }
-
-    @GetMapping("/getProductConsumptionsByStoreId")
-    public List<ProductConsumptionDTO> getProductConsumptionsByStoreId(@RequestParam Long storeId) {
-        return storeService.getProductConsumptionsByStoreId(storeId);
-    }
 }

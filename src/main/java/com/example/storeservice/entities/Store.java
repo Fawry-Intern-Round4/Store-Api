@@ -1,19 +1,26 @@
 package com.example.storeservice.entities;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import jakarta.validation.constraints.NotBlank;
+import lombok.*;
 
 @Entity
 @Table(name = "stores")
-@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
 public class Store {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long storeId;
+    private Long id;
 
-    private String storeName;
+    @NotBlank(message = "Store name is mandatory")
+    private String name;
 
+    @NotBlank(message = "Store location is mandatory")
     private String location;
 }
 
