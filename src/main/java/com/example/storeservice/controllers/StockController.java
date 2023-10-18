@@ -22,6 +22,10 @@ public class StockController {
         return stockService.addStock(itemRequest);
     }
 
+    @PostMapping("/validation")
+    public void validateProducts(@Valid @RequestBody List<ItemRequest> itemRequests) {
+        stockService.validateStock(itemRequests);
+    }
     @PutMapping("/consumption")
     public void consumeProducts(@Valid @RequestBody List<ItemRequest> itemRequests) {
         stockService.consumeStock(itemRequests);

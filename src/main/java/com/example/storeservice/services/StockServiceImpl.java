@@ -27,7 +27,7 @@ public class StockServiceImpl implements StockService {
 
     @Override
     public StockDTO addStock(ItemRequest itemRequest) {
-        webClientService.checkIfProductsExist(itemRequest.getProductId());
+        webClientService.checkIfProductExist(itemRequest.getProductId());
         storeService.checkIfStoreExists(itemRequest.getStoreId());
         Stock stock = stockRepository.findByStore_IdAndProductId(itemRequest.getStoreId(), itemRequest.getProductId());
         if (stock != null) {
@@ -38,10 +38,15 @@ public class StockServiceImpl implements StockService {
     }
 
     @Override
+    public void validateStock(List<ItemRequest> itemRequest) {
+        webClientService.getProducts(getProductIds(itemRequest));
+        storeService.checkIfStoresExists(getStoreIds(itemRequest));
+        checkIfProductsOutOfStock(itemRequest);
+    }
+
+    @Override
     public void consumeStock(List<ItemRequest> itemRequest) {
-           webClientService.getProducts(getProductIds(itemRequest));
-           storeService.checkIfStoresExists(getStoreIds(itemRequest));
-           checkIfProductsOutOfStock(itemRequest);
+           validateStock(itemRequest);
            for (ItemRequest item : itemRequest) {
                consumeProductFromStock(item);
                productConsumptionService.createProductConsumption(item);

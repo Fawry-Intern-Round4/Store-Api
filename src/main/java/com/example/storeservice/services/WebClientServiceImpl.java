@@ -45,7 +45,7 @@ public class WebClientServiceImpl implements WebClientService {
     }
 
     @Override
-    public void checkIfProductsExist(Long productId) {
+    public void checkIfProductExist(Long productId) {
         webClient.build()
                 .get()
                 .uri("lb://product-api/product/" + productId)

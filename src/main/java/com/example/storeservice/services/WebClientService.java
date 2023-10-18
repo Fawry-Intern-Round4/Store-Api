@@ -8,5 +8,5 @@ import java.util.Set;
 public interface WebClientService {
     List<ProductResponse> getProducts(Set<Long> productIds);
 
-    void checkIfProductsExist(Long productId);
+    void checkIfProductExist(Long productId);
 }
