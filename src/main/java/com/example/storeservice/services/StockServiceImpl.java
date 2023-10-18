@@ -38,14 +38,6 @@ public class StockServiceImpl implements StockService {
     }
 
     @Override
-    public List<StockDTO> getStockByStoreId(Long storeId) {
-        return stockRepository.findByStore_Id(storeId)
-                .stream()
-                .map(stockMapper::toStockDTO)
-                .toList();
-    }
-
-    @Override
     public void consumeStock(List<ItemRequest> itemRequest) {
            webClientService.getProducts(getProductIds(itemRequest));
            storeService.checkIfStoresExists(getStoreIds(itemRequest));

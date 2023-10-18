@@ -7,6 +7,5 @@ import java.util.List;
 
 public interface StockService {
     StockDTO addStock(ItemRequest itemRequest);
-    List<StockDTO> getStockByStoreId(Long storeId);
     void consumeStock(List<ItemRequest> itemRequest);
 }
