@@ -38,16 +38,16 @@ public class StockServiceImpl implements StockService {
     }
 
     @Override
-    public void validateStock(List<ItemRequest> itemRequest) {
-        webClientService.getProducts(getProductIds(itemRequest));
-        storeService.checkIfStoresExists(getStoreIds(itemRequest));
-        checkIfProductsOutOfStock(itemRequest);
+    public void validateStock(List<ItemRequest> itemsRequest) {
+        webClientService.getProducts(getProductIds(itemsRequest));
+        storeService.checkIfStoresExists(getStoreIds(itemsRequest));
+        checkIfProductsOutOfStock(itemsRequest);
     }
 
     @Override
-    public void consumeStock(List<ItemRequest> itemRequest) {
-           validateStock(itemRequest);
-           for (ItemRequest item : itemRequest) {
+    public void consumeStock(List<ItemRequest> itemsRequest) {
+           validateStock(itemsRequest);
+           for (ItemRequest item : itemsRequest) {
                consumeProductFromStock(item);
                productConsumptionService.createProductConsumption(item);
            }

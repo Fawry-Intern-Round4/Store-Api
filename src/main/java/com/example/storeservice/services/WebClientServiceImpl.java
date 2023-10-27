@@ -22,7 +22,7 @@ public class WebClientServiceImpl implements WebClientService {
     public List<ProductResponse> getProducts(Set<Long> productIds) {
         return webClient.build()
                 .get()
-                .uri("lb://product-api/product", uriBuilder ->
+                .uri("http://product-api:8080/product", uriBuilder ->
                         uriBuilder.queryParam("ids", productIds).build())
                 .retrieve()
                 .onStatus(HttpStatusCode::is4xxClientError, clientResponse ->
@@ -48,7 +48,7 @@ public class WebClientServiceImpl implements WebClientService {
     public void checkIfProductExist(Long productId) {
         webClient.build()
                 .get()
-                .uri("lb://product-api/product/" + productId)
+                .uri("http://product-api:8080/product/" + productId)
                 .retrieve()
                 .onStatus(HttpStatusCode::isError, clientResponse ->
                         clientResponse
